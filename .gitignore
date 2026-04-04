@@ -1,0 +1,11 @@
+.venv
+.env
+credentials.json
+token.json
+.pytest_cache
+__pycache__
+sheets
+config.yaml
+build
+dist
+finance_tracker_app.egg-info
