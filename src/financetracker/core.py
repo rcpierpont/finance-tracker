@@ -14,3 +14,14 @@ def select_by_category(rows, category):
             selected.append(row)
     return selected
 
+
+def strip_outside_quotes(text):
+    result = []
+    in_quotes = False
+    for char in text:
+        if char == '"':
+            in_quotes = not in_quotes
+        if not in_quotes and char == " ":
+            continue
+        result.append(char)
+    return "".join(result)

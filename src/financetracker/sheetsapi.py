@@ -9,9 +9,6 @@ SPREADSHEET_ID = "1rSx6kLYIh-_Y8iDSpAZntyBPZxtYS_r7922F47TTb5o"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/spreadsheets.readonly"]
 
 
-
-
-
 # TODO: make this into a class so it's easier to retrieve attributes of the sheet without having to send request
 class FinanceSheet:
     def __init__(self, name):
@@ -28,24 +25,23 @@ class FinanceSheet:
         creds = None
         if os.path.exists("token.json"):
             creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-            # If there are no (valid) credentials available, let the user log in.
-            if not creds or not creds.valid:
-                if creds and creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
-                else:
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        "credentials.json", SCOPES
-                    )
-                    creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open("token.json", "w") as token:
-                token.write(creds.to_json())
-            try:
-                client = build("sheets", "v4", credentials=creds)
-                return client
-            except HttpError as err:
-                print(err)
-        return client
+        # If there are no (valid) credentials available, let the user log in.
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    "credentials.json", SCOPES
+                )
+                creds = flow.run_local_server(port=0)
+                # Save the credentials for the next run
+                with open("token.json", "w") as token:
+                    token.write(creds.to_json())
+        try:
+            client = build("sheets", "v4", credentials=creds)
+            return client
+        except HttpError as err:
+            print(err)
 
     def get_data(self):
         sheet_path = f'sheets/{self.name}.json'

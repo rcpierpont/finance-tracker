@@ -1,0 +1,8 @@
+sheet_name: "expenses"
+monthly_income: 4000.00
+monthly_expenses: 
+  rent: 2000.00
+  car_insurance: 100.00
+  phone: 80.00
+  internet: 100.00
+  streaming_services: 30.00

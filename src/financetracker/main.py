@@ -2,13 +2,17 @@ import click
 from financetracker.sheetsapi import FinanceSheet
 from financetracker.core import get_sum,select_by_category
 from financetracker.files import load_config
+from financetracker.core import strip_outside_quotes
 from datetime import datetime as dt
-import calendar
-import re
+import calendar,os,re
 
 iso_date = r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
-sheet_name = 'test'
+quoted_text = r'\"(.+?)\"|([^, ]+)'
 
+configs = load_config()
+
+sheet_name = configs['sheet_name']
+sheet_data = FinanceSheet(sheet_name).get_data()
 # TODO: make app flow more like go pokedex:
 #   - sheet loaded on start and written to json
 #   - calculations are done by pulling data from json
@@ -16,6 +20,12 @@ sheet_name = 'test'
 # TODO: add command to save common expenses as shortcuts, for example "ft save subway --desc subway --amount 3.00 --category transportation"
 # TODO: add command to add new rows from saved shortcuts, for example "ft sc subway 2" would execute "ft add subway 3.00 transportation <current-date>" twice
 # TODO: add command balance, which calculates a total and subtracts from monthly income
+
+def load_sheet_data():
+    if sheet_data is not None:
+        return sheet_data
+    gs = FinanceSheet(sheet_name)
+    return gs.get_data()
 
 
 @click.group()
@@ -25,18 +35,17 @@ def cli():
 @cli.command()
 @click.argument('month')
 @click.option('-c', '--category', 'cat')
-def total(month, cat = None):
-    gs = FinanceSheet(sheet_name)
+def total(month, cat):
+    data = load_sheet_data()
     total = 0
     selected = []
-    for row in gs.get_data():
-        row_cat = row['Category']
+    for row in data:
+        row_cat = row.get('Category')
         
         month_int = int(str(row['Date']).split('-')[1])
         month_name = calendar.month_name[month_int].lower()
         month_abbr = calendar.month_abbr[month_int].lower()
-        
-        if month.lower() in [month_name, month_abbr] and row_cat.lower() == cat.lower(): 
+        if month.lower() in [month_name, month_abbr] and (cat is None or row_cat.lower() == cat.lower()): 
             selected.append(row)
     
     total = get_sum(selected)
@@ -70,11 +79,19 @@ def add(desc, amount, cat, now):
                 break
             print('Date format invalid, please re-enter using YYYY-mm-dd.')
 
-
     gs.add_row([desc, amount, cat, date])
 
 def main():
-    cli()
+    
+    while True:
+        value = click.prompt("ft >> ")
+        if value.strip() == "exit":
+            break
+        value_args = [''.join(arg) for arg in re.findall(quoted_text, value)]
+        try:
+            cli.main(args=value_args, standalone_mode=False)
+        except Exception as e:
+            click.echo(e)
 
 if __name__ == '__main__':
     main()
