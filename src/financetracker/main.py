@@ -13,10 +13,7 @@ configs = load_config()
 
 sheet_name = configs['sheet_name']
 sheet_data = FinanceSheet(sheet_name).get_data()
-# TODO: make app flow more like go pokedex:
-#   - sheet loaded on start and written to json
-#   - calculations are done by pulling data from json
-#   - when session ends, any net new rows are appended to sheet using api
+# TODO: add command 'show' that takes start and end date params and outputs all rows in that range
 # TODO: add command to save common expenses as shortcuts, for example "ft save subway --desc subway --amount 3.00 --category transportation"
 # TODO: add command to add new rows from saved shortcuts, for example "ft sc subway 2" would execute "ft add subway 3.00 transportation <current-date>" twice
 # TODO: add command balance, which calculates a total and subtracts from monthly income
@@ -80,6 +77,14 @@ def add(desc, amount, cat, now):
             print('Date format invalid, please re-enter using YYYY-mm-dd.')
 
     gs.add_row([desc, amount, cat, date])
+
+@cli.command()
+@click.argument('start')
+@click.argument('end')
+@click.option('--sort/--sort-asc', default=True)
+def show(start, end, desc):
+    gs = FinanceSheet(sheet_name)
+    ...
 
 def main():
     
